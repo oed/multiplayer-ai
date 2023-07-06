@@ -1,0 +1,5 @@
+type SharedMessage @createModel(accountRelation: LIST, description: "A message with a response from an LLM") {
+  text: String @string(maxLength: 2400)
+  response: String @string(maxLength: 2400)
+  author: DID! @documentAccount
+}

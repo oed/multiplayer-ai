@@ -13,8 +13,8 @@ import { authenticateCeramic } from '../utils'
 import styles from '../styles/Home.module.css'
 
 interface Blessing {
-  to: String
   text: String
+  response: String
   author?: String
 }
 interface NameMap {
@@ -45,12 +45,12 @@ const Home: NextPage = () => {
       edges: rawBlessings
     }}} = await composeClient.executeQuery(`
     query{
-      blessingIndex(last:10${cursor ? `, before: "${cursor}"` : ''}){
+      sharedMessageIndex(last:10${cursor ? `, before: "${cursor}"` : ''}){
         edges{
           cursor
-          node{
-            to {id}
+          node {
             text
+            response
             author {id}
           }
         }
@@ -132,11 +132,12 @@ const Home: NextPage = () => {
   const createBlessing = async () => {
     setLoading(true);
     if (ceramic.did !== undefined) {
-      const to = await toDID(blessing?.to as string)
       const text = blessing?.text
+      // TODO - create the response and add here.
+      // const response = ...
       const update = await composeClient.executeQuery(`
         mutation {
-          createBlessing(input: {
+          createSharedMessage(input: {
             content: {
               to: "${to}"
               text: "${text}"
@@ -152,8 +153,8 @@ const Home: NextPage = () => {
         }
       `);
       blessings.unshift({ 
-        to: blessing?.to as String,
         text: text as String,
+        response: "", // response as String,
         author: ceramic.did.parent.split('did:pkh:eip155:1:')[1]
       })
       setBlessings(blessings)

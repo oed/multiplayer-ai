@@ -133,12 +133,25 @@ const Home: NextPage = () => {
     throw new Error('Incorrect ENS name or address')
   }
 
+  const getResponse = async (text: string) => {
+    // send text as a prompt to the openai api
+    console.log('messages:', blessings)
+    return "This is a fake response"
+    const response = await fetch('/api/openai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: text })
+    })
+    const { choices } = await response.json()
+    return choices[0].text
+  }
+
   const createBlessing = async () => {
     setLoading(true);
     if (ceramic.did !== undefined) {
       const text = blessing?.text
       // TODO - create the response and add here.
-      const response = "This is a fkae response"
+      const response = await getResponse(text as string)
       const update = await composeClient.executeQuery(`
         mutation {
           createSharedMessage(input: {

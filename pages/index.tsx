@@ -40,7 +40,7 @@ const Home: NextPage = () => {
 
   const getBlessings = async () => {
     setLoading(true)
-    const { data: { blessingIndex: { 
+    const { data: { sharedMessageIndex: { 
       pageInfo: { hasPreviousPage },
       edges: rawBlessings
     }}} = await composeClient.executeQuery(`
@@ -61,16 +61,16 @@ const Home: NextPage = () => {
     }
     `) as any;
 
-    if (hasPreviousPage) {
+    if (rawBlessings.length) {
       setCursor(rawBlessings[0].cursor)
     } else {
-      setCursor('')
+//      setCursor('')
     }
     
     const toAddress = did => did.slice(17)
     const format = ({ node }) => ({
-      to: toAddress(node.to.id),
       text: node.text,
+      response: node.response,
       author: toAddress(node.author.id)
     })
     // const bls = rawBlessings.reverse().map(format) 
@@ -81,6 +81,11 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     fillENSNames(blessings)
+    const interval = setInterval(() => {
+      getBlessings()
+    }, 1000);
+
+    return () => clearInterval(interval);
   }, [blessings])
 
   useEffect(() => {
@@ -101,7 +106,6 @@ const Home: NextPage = () => {
         const promise = prov.lookupAddress(address)
         ensMap[address] = { promise }
       }
-      loadData(b.to)
       loadData(b.author)
     })
     await Promise.all(Object.entries(ensMap).map(async ([key, value ]) => {
@@ -134,19 +138,19 @@ const Home: NextPage = () => {
     if (ceramic.did !== undefined) {
       const text = blessing?.text
       // TODO - create the response and add here.
-      // const response = ...
+      const response = "This is a fkae response"
       const update = await composeClient.executeQuery(`
         mutation {
           createSharedMessage(input: {
             content: {
-              to: "${to}"
+              response: "${response}"
               text: "${text}"
             }
-          }) 
+          })
           {
             document {
-              to { id }
               text
+              response
               author { id }
             }
           }
@@ -154,7 +158,7 @@ const Home: NextPage = () => {
       `);
       blessings.unshift({ 
         text: text as String,
-        response: "", // response as String,
+        response: response as String,
         author: ceramic.did.parent.split('did:pkh:eip155:1:')[1]
       })
       setBlessings(blessings)
@@ -179,20 +183,21 @@ const Home: NextPage = () => {
 
   const renderBlessing = (blessing) => {
     const toName = addrOrName => addrOrName.startsWith('0x') ? nameMap[addrOrName] || addrOrName : addrOrName
-    const { author, to, text } = blessing
+    const { author, response, text } = blessing
     return (<div className={styles.item}>
         <div className={styles.itemauthor}>{toName(author)}</div>
-        <div className={styles.itembless}>Blessed</div>
-        <div className={styles.itemto}>{toName(to)}</div>
+        <div className={styles.itembless}>Said</div>
+        <div className={styles.itemtext}>{text}</div>
         <hr />
-        <div className={styles.itemtext}>{toName(text)}</div>
+        <div className={styles.itembless}>Bot said:</div>
+        <div className={styles.itemtext}>{response}</div>
       </div>);
   }
   return (
     <div className={styles.container}>
       <Head>
-        <title>bless.club</title>
-        <meta name="description" content="Bless people you meet" />
+        <title>Multiplayer AI</title>
+        <meta name="description" content="Chat together"/>
         <link rel="icon" href="/favicon.ico" />
         <meta property="og:title" content="bless.club" />
         <meta property="og:url" content="https://bless.club" />
@@ -211,7 +216,7 @@ const Home: NextPage = () => {
               height="40"
             />
           </div>
-          <span className={styles.title}>bless.club</span>
+          <span className={styles.title}>Multiplayer AI</span>
         </div>
         {blessings.map(renderBlessing)}
         {Boolean(cursor) ? 
@@ -234,22 +239,10 @@ const Home: NextPage = () => {
         ) : (
           <div className={styles.form}>
             <div className={styles.formGroup}>
-              <label>Who?</label>
-              <input
-                id="ensInput"
-                type="text"
-                placeholder="ENS name or address"
-                onChange={(e) => {
-                  // @ts-ignore
-                  setBlessing({ ...blessing, to: e.target.value });
-                }}
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label>Blessing</label>
+              <label>Message</label>
               <textarea
                 id="textInput"
-                placeholder="Why are you blessing this person?"
+                placeholder="Type your message here..."
                 onChange={(e) => {
                   // @ts-ignore
                   setBlessing({ ...blessing, text: e.target.value });
@@ -261,7 +254,7 @@ const Home: NextPage = () => {
               onClick={() => {
                 createBlessing();
               }}>
-                {loading ? 'Blessing...' : 'Bless'}
+                {loading ? 'Submitting...' : 'Submit'}
               </button>
             </div>
           </div>

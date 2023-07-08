@@ -42,10 +42,7 @@ const Home: NextPage = () => {
 
   const getBlessings = async () => {
     setLoading(true)
-    const { data: { sharedMessageIndex: { 
-      pageInfo: { hasPreviousPage },
-      edges: rawBlessings
-    }}} = await composeClient.executeQuery(`
+    const { data: { sharedMessageIndex }} = await composeClient.executeQuery(`
     query{
       sharedMessageIndex(last:10${cursor ? `, before: "${cursor}"` : ''}){
         edges{
@@ -62,7 +59,10 @@ const Home: NextPage = () => {
       }
     }
     `) as any;
-
+    const { 
+      pageInfo: { hasPreviousPage },
+      edges: rawBlessings
+    } = sharedMessageIndex || { pageInfo: { hasPreviousPage: false }, edges: [] }
     if (rawBlessings.length) {
       setCursor(rawBlessings[0].cursor)
     } else {

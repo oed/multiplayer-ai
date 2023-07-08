@@ -5,8 +5,8 @@ import { ComposeClient } from "@composedb/client";
 import { definition } from "../src/__generated__/definition.js";
 import { RuntimeCompositeDefinition } from "@composedb/types";
 
-const CERAMIC_URL = 'http://localhost:7007'
-// const CERAMIC_URL = 'https://ceramic-blessclub.hirenodes.io/'
+// const CERAMIC_URL = 'http://localhost:7007'
+const CERAMIC_URL = 'https://ceramic-blessclub.hirenodes.io/'
 /**
  * Configure ceramic Client & create context.
  */

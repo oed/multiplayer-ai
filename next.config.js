@@ -3,7 +3,6 @@ const nextConfig = {
   reactStrictMode: true,
   trailingSlash: true,
   assetPrefix: "",
-  transpilePackages: ['openai-web'],
   images: { unoptimized: true }
   
 }

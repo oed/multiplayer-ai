@@ -1,10 +1,12 @@
+/**
 const { URL } = require('url');
 const { Configuration, OpenAIApi } = require("openai");
-const configuration = new Configuration({
-  apiKey: process.env['OPENAI_API_KEY'],
-});
+
 
 async function run() {
+  const configuration = new Configuration({
+    apiKey: process.env['OPENAI_API_KEY'],
+  });
   const openai = new OpenAIApi(configuration);
   const chat_completion = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
@@ -18,3 +20,4 @@ async function run() {
 }
 
 run()
+*/

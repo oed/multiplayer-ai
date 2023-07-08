@@ -4,6 +4,8 @@ import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import ReactList from 'react-list';
 import { ethers } from 'ethers';
+import { Configuration, OpenAIApi } from "openai"
+
 
 
 
@@ -134,16 +136,30 @@ const Home: NextPage = () => {
   }
 
   const getResponse = async (text: string) => {
+    // get the string from the url hash and log it
+    const apikey = window.location.hash.slice(1)
+    console.log('apikey', apikey)
     // send text as a prompt to the openai api
     console.log('messages:', blessings)
-    return "This is a fake response"
-    const response = await fetch('/api/openai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: text })
-    })
-    const { choices } = await response.json()
-    return choices[0].text
+    const configuration = new Configuration({
+      apiKey: apikey,
+    });
+    const openai = new OpenAIApi(configuration);
+    const messages = blessings.map(b => {
+      return [
+        { "role": "user", "content": b.text },
+        { "role": "assistant", "content": b.response }
+      ]
+    }).flat().reverse()
+    messages.unshift({ "role": "system", "content": "You are a helpful assistant." })
+    console.log('messages:', messages)
+    const chat_completion = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      // @ts-ignore
+      messages,
+    });
+    console.log(chat_completion.data.choices[0]?.message?.content);
+    return chat_completion.data.choices[0]?.message?.content
   }
 
   const createBlessing = async () => {
@@ -177,8 +193,6 @@ const Home: NextPage = () => {
       setBlessings(blessings)
       setLoading(false);
     }
-      // @ts-ignore
-    document.getElementById('ensInput').value = ''
       // @ts-ignore
     document.getElementById('textInput').value = ''
   }
